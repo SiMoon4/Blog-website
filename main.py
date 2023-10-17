@@ -44,35 +44,57 @@ gravatar = Gravatar(app,
 # CONFIGURE TABLES
 class BlogPost(db.Model, UserMixin):
     __tablename__ = "blog_posts"
-    id: Mapped[int] = mapped_column(primary_key=True)
+    # id: Mapped[int] = mapped_column(primary_key=True)
+    # title = db.Column(db.String(250), unique=True, nullable=False)
+    # subtitle = db.Column(db.String(250), nullable=False)
+    # date = db.Column(db.String(250), nullable=False)
+    # body = db.Column(db.Text, nullable=False)
+    # author: Mapped["Users"] = relationship(back_populates="posts")
+    # img_url = db.Column(db.String(250), nullable=False)
+    # author_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
+    # comments: Mapped[list['Comment']] = relationship(back_populates="posts")
+    id = db.Column(db.Integer, primary_key=True)
+    author_id = db.Column(db.Integer, db.ForeignKey("users.id"))
+    author = relationship("User", back_populates="posts")
     title = db.Column(db.String(250), unique=True, nullable=False)
     subtitle = db.Column(db.String(250), nullable=False)
     date = db.Column(db.String(250), nullable=False)
     body = db.Column(db.Text, nullable=False)
-    author: Mapped["Users"] = relationship(back_populates="posts")
     img_url = db.Column(db.String(250), nullable=False)
-    author_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
-    comments: Mapped[list['Comment']] = relationship(back_populates="posts")
+    comments = relationship("Comment", back_populates="parent_post")
 
 #User table for all your registered users. 
 class Users(db.Model, UserMixin):
     __tablename__ = "users"
-    id: Mapped[int] = mapped_column(primary_key=True)
-    email = db.Column(db.String(250), unique=True, nullable=False)
-    password = db.Column(db.String(250), nullable=False)
-    name = db.Column(db.String(250), nullable=False)
-    posts: Mapped[list["BlogPost"]] = relationship(back_populates="author")
-    comments: Mapped[list['Comment']] = relationship(back_populates="author")
+    # id: Mapped[int] = mapped_column(primary_key=True)
+    # email = db.Column(db.String(250), unique=True, nullable=False)
+    # password = db.Column(db.String(250), nullable=False)
+    # name = db.Column(db.String(250), nullable=False)
+    # posts: Mapped[list["BlogPost"]] = relationship(back_populates="author")
+    # comments: Mapped[list['Comment']] = relationship(back_populates="author")
+    id = db.Column(db.Integer, primary_key=True)
+    email = db.Column(db.String(100), unique=True)
+    password = db.Column(db.String(100))
+    name = db.Column(db.String(100))
+    posts = relationship("BlogPost", back_populates="author")
+    comments = relationship("Comment", back_populates="comment_author")
+
     
 
 class Comment(db.Model, UserMixin):
     __tablename__ = "comments"
-    id: Mapped[int] = mapped_column(primary_key=True)
-    body = db.Column(db.Text, nullable = False)
-    author: Mapped["Users"] = relationship(back_populates="comments")
-    author_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
-    post_id: Mapped[int] = mapped_column(ForeignKey("blog_posts.id"))
-    posts: Mapped["BlogPost"] = relationship(back_populates="comments")
+    # id: Mapped[int] = mapped_column(primary_key=True)
+    # body = db.Column(db.Text, nullable = False)
+    # author: Mapped["Users"] = relationship(back_populates="comments")
+    # author_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
+    # post_id: Mapped[int] = mapped_column(ForeignKey("blog_posts.id"))
+    # posts: Mapped["BlogPost"] = relationship(back_populates="comments")
+    id = db.Column(db.Integer, primary_key=True)
+    text = db.Column(db.Text, nullable=False)
+    author_id = db.Column(db.Integer, db.ForeignKey("users.id"))
+    comment_author = relationship("User", back_populates="comments")
+    post_id = db.Column(db.Integer, db.ForeignKey("blog_posts.id"))
+    parent_post = relationship("BlogPost", back_populates="comments")
 
 
 with app.app_context():
