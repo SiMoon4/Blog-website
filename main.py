@@ -55,7 +55,7 @@ class BlogPost(db.Model, UserMixin):
     # comments: Mapped[list['Comment']] = relationship(back_populates="posts")
     id = db.Column(db.Integer, primary_key=True)
     author_id = db.Column(db.Integer, db.ForeignKey("users.id"))
-    author = relationship("User", back_populates="posts")
+    author = relationship("Users", back_populates="posts")
     title = db.Column(db.String(250), unique=True, nullable=False)
     subtitle = db.Column(db.String(250), nullable=False)
     date = db.Column(db.String(250), nullable=False)
@@ -77,7 +77,7 @@ class Users(db.Model, UserMixin):
     password = db.Column(db.String(100))
     name = db.Column(db.String(100))
     posts = relationship("BlogPost", back_populates="author")
-    comments = relationship("Comment", back_populates="comment_author")
+    comments = relationship("Comment", back_populates="author")
 
     
 
@@ -90,9 +90,9 @@ class Comment(db.Model, UserMixin):
     # post_id: Mapped[int] = mapped_column(ForeignKey("blog_posts.id"))
     # posts: Mapped["BlogPost"] = relationship(back_populates="comments")
     id = db.Column(db.Integer, primary_key=True)
-    text = db.Column(db.Text, nullable=False)
+    body = db.Column(db.Text, nullable=False)
     author_id = db.Column(db.Integer, db.ForeignKey("users.id"))
-    comment_author = relationship("User", back_populates="comments")
+    author = relationship("Users", back_populates="comments")
     post_id = db.Column(db.Integer, db.ForeignKey("blog_posts.id"))
     parent_post = relationship("BlogPost", back_populates="comments")
 
@@ -231,8 +231,11 @@ def edit_post(post_id):
 
 # TODO: Use a decorator so only an admin user can delete a post
 @app.route("/delete/<int:post_id>")
-@admin_only
 def delete_post(post_id):
+    comments_to_delete = db.session.execute(db.select(Comment).where(Comment.post_id == post_id)).scalars().all()
+    for comment in comments_to_delete:
+        db.session.delete(comment)
+    db.session.commit()
     post_to_delete = db.get_or_404(BlogPost, post_id)
     db.session.delete(post_to_delete)
     db.session.commit()
@@ -259,4 +262,4 @@ def contact():
 
 
 if __name__ == "__main__":
-    app.run(debug=False)
+    app.run(debug=True)
